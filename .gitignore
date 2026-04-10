@@ -1,0 +1,22 @@
+# Secrets
+.env
+srcs/.env
+secrets/
+*.env
+
+# Données persistantes
+data/
+.sql.bak
+
+# Fichiers systeme
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Editeurs
+*.swp
+*~
+.vscode/
+.idea/
