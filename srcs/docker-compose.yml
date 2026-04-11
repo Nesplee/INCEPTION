@@ -38,6 +38,15 @@ services:
     networks:
       - inception
 
+  website:
+    build: ./requirements/bonus/website
+    container_name: website
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+    networks:
+      - inception
+
 volumes:
   mariadb:
     driver: local
