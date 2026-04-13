@@ -81,6 +81,25 @@ services:
     networks:
       - inception
 
+  n8n:
+    build: ./requirements/bonus/n8n
+    container_name: n8n
+    restart: always
+    env_file: .env
+    environment:
+      - N8N_HOST=n8n.dinguyen.42.fr
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - WEBHOOK_URL=https://n8n.dinguyen.42.fr/
+      - N8N_EDITOR_BASE_URL=https://n8n.dinguyen.42.fr/
+      - N8N_SECURE_COOKIE=true
+      - N8N_RUNNERS_ENABLED=true
+      - GENERIC_TIMEZONE=Europe/Zurich
+    volumes:
+      - n8n:/home/node/.n8n
+    networks:
+      - inception
+
 volumes:
   mariadb:
     driver: local
@@ -94,7 +113,16 @@ volumes:
       type: none
       o: bind
       device: /home/dimitri/data/wordpress
+  n8n:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/dimitri/data/n8n
 
 networks:
   inception:
     driver: bridge
+
+
+
