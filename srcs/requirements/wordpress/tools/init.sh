@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ ! -f /var/www/html/wordpress/wp-config.php ]; then
+if [ ! -f /usr/local/bin/wp ]; then
 	wget		https://wordpress.org/latest.tar.gz -P /var/www/html
 	tar -xzf	/var/www/html/latest.tar.gz -C /var/www/html
 	rm		/var/www/html/latest.tar.gz
@@ -34,6 +34,11 @@ if [ ! -f /var/www/html/wordpress/wp-config.php ]; then
 		--user_pass="${WP_USER_PASSWORD}" \
 		--role=author \
 		--allow-root
+
+	wp config set WP_REDIS_HOST redis --allow-root
+	wp config set WP_REDIS_PORT 6379 --raw --allow-root
+	wp plugin install redis-cache --activate --allow-root
+	wp redis enable --allow-root
 
 fi
 

@@ -58,6 +58,15 @@ services:
     networks:
       - inception
 
+  redis:
+    build: ./requirements/bonus/redis
+    container_name: redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    networks:
+      - inception
+
 volumes:
   mariadb:
     driver: local
