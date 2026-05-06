@@ -1,6 +1,6 @@
 #!/bin/bash
 
-useradd -m -s /bin/bash $FTP_USER
+useradd -m -d /var/www/html/wordpress -s /bin/bash $FTP_USER
 
 echo "$FTP_USER:$FTP_PASSWORD" | chpasswd
 
