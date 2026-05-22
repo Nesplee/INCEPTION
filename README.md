@@ -30,8 +30,8 @@ Un réseau `bridge` crée un sous-réseau virtuel isolé. Les conteneurs y commu
                              │
                     ┌────────▼────────┐
                     │      NGINX      │  ← seul point d'entrée
-                    │  TLSv1.2/1.3   │    certificat auto-signé
-                    └──────┬──────┬──┘
+                    │   TLSv1.2/1.3   │    certificat auto-signé
+                    └──────┬──────┬───┘
                            │      │ reverse proxy
                      :9000 │      └───────────────────────────────┐
                     ┌──────▼────────┐                   ┌─────────▼────────┐
