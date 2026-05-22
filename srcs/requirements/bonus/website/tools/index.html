@@ -1,7 +1,93 @@
 <!DOCTYPE html>
-<html>
-	<head><title>dinguyen -42</title></head>
-	<body>
-	 <h1>Hello Worldy</h1>
-	</body>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>dinguyen — 42</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Courier New', monospace;
+      background: #0d0d0d;
+      color: #e0e0e0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+      padding: 2rem;
+    }
+
+    header {
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2.4rem;
+      letter-spacing: 0.1em;
+      color: #ffffff;
+    }
+
+    h1 span {
+      color: #00bfff;
+    }
+
+    .subtitle {
+      margin-top: 0.4rem;
+      font-size: 0.95rem;
+      color: #888;
+      letter-spacing: 0.05em;
+    }
+
+    .stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      justify-content: center;
+      max-width: 600px;
+    }
+
+    .badge {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      padding: 0.4rem 0.9rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      color: #ccc;
+    }
+
+    .badge span {
+      color: #00bfff;
+      font-weight: bold;
+    }
+
+    footer {
+      font-size: 0.75rem;
+      color: #444;
+      letter-spacing: 0.05em;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>din<span>nguyen</span></h1>
+    <p class="subtitle">42 Lausanne — Inception project</p>
+  </header>
+
+  <div class="stack">
+    <div class="badge"><span>NGINX</span> TLSv1.2 / TLSv1.3</div>
+    <div class="badge"><span>WordPress</span> PHP-FPM</div>
+    <div class="badge"><span>MariaDB</span> database</div>
+    <div class="badge"><span>Redis</span> object cache</div>
+    <div class="badge"><span>FTP</span> vsftpd</div>
+    <div class="badge"><span>Adminer</span> DB UI</div>
+    <div class="badge"><span>n8n</span> automation</div>
+  </div>
+
+  <footer>infrastructure running in Docker — 2025</footer>
+
+</body>
 </html>
