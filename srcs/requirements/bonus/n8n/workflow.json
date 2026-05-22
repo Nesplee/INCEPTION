@@ -1,0 +1,77 @@
+{
+  "name": "Inception — Demo Email",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Inception — Demo",
+        "formDescription": "Enter your email address. You will receive a message sent automatically by this n8n workflow.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Your name",
+              "fieldType": "text",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Your email",
+              "fieldType": "email",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {
+          "respondWithOptions": {
+            "values": {
+              "respondWith": "text",
+              "responseText": "Done! Check your inbox."
+            }
+          }
+        }
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000001",
+      "name": "Form",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [240, 300],
+      "webhookId": "inception-demo"
+    },
+    {
+      "parameters": {
+        "fromEmail": "your.gmail@gmail.com",
+        "toEmail": "={{ $json['Your email'] }}",
+        "subject": "Hello from Inception — 42",
+        "emailType": "html",
+        "message": "<p>Hello <strong>{{ $json['Your name'] }}</strong>,</p><p>This email was sent automatically by an <strong>n8n</strong> workflow running inside a Docker container.</p><p>The workflow was triggered by the form you just submitted.</p><hr style='border:none;border-top:1px solid #eee;margin:20px 0'><p style='color:#999;font-size:12px'>Inception project — 42 Lausanne — dinguyen</p>"
+      },
+      "id": "a1b2c3d4-0002-0002-0002-000000000002",
+      "name": "Send Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [480, 300],
+      "credentials": {
+        "smtp": {
+          "id": "1",
+          "name": "Gmail SMTP"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Form": {
+      "main": [
+        [
+          {
+            "node": "Send Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": []
+}
