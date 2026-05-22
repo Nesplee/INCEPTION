@@ -1,5 +1,5 @@
 all:
-	mkdir -p /home/dimitri/data/mariadb /home/dimitri/data/wordpress /home/dimitri/data/n8n
+	mkdir -p /home/dinguyen/data/mariadb /home/dinguyen/data/wordpress /home/dinguyen/data/n8n
 	docker compose -f srcs/docker-compose.yml up -d --build
 
 down:
