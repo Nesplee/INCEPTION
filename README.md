@@ -1,6 +1,6 @@
 # Inception
 
-Déploiement d'une infrastructure web multi-conteneurs via Docker Compose sur une machine virtuelle.  
+Déploiement d'une infrastructure web multi-conteneurs via Docker Compose sur une machine virtuelle.
 Chaque service tourne dans son propre conteneur construit depuis un `Dockerfile` dédié — aucune image toute-faite n'est utilisée (hormis Alpine/Debian comme base).
 
 ---
@@ -33,8 +33,8 @@ Un réseau `bridge` crée un sous-réseau virtuel isolé. Les conteneurs y commu
                     │  TLSv1.2/1.3   │    certificat auto-signé
                     └──────┬──────┬──┘
                            │      │ reverse proxy
-                     :9000 │      └──────────────────────────────┐
-                    ┌──────▼────────┐                  ┌─────────▼────────┐
+                     :9000 │      └───────────────────────────────┐
+                    ┌──────▼────────┐                   ┌─────────▼────────┐
                     │   WordPress   │                   │       n8n        │
                     │   PHP-FPM     │◄──── Redis        │  automatisation  │
                     └──────┬────────┘      (cache)      └──────────────────┘
@@ -68,7 +68,7 @@ Tous les conteneurs appartiennent au réseau bridge `inception`.
 | `wordpress` | CMS                           | PHP-FPM sur port 9000, **sans serveur web intégré**     |
 | `mariadb`   | Base de données               | 2 utilisateurs : admin (non nommé "admin") + auteur     |
 
-**Pourquoi WordPress sans nginx ?**  
+**Pourquoi WordPress sans nginx ?**
 Le sujet impose la séparation des responsabilités : nginx gère le TLS et le routage HTTP, WordPress ne fait que traiter le PHP via FastCGI (protocole FPM). NGINX fait un `fastcgi_pass wordpress:9000` pour déléguer l'exécution PHP.
 
 ### Bonus
