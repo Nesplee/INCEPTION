@@ -1,14 +1,15 @@
 all:
-	docker-compose -f srcs/docker-compose.yml up -d --build
+	mkdir -p /home/dimitri/data/mariadb /home/dimitri/data/wordpress /home/dimitri/data/n8n
+	docker compose -f srcs/docker-compose.yml up -d --build
 
 down:
-	docker-compose -f srcs/docker-compose.yml down
+	docker compose -f srcs/docker-compose.yml down
 
 re:
-	docker-compose -f srcs/docker-compose.yml up -d --build --force-recreate
+	docker compose -f srcs/docker-compose.yml up -d --build --force-recreate
 
 clean:
-	docker-compose -f srcs/docker-compose.yml down -v
+	docker compose -f srcs/docker-compose.yml down -v
 
 fclean:	clean
 	docker system prune -af
