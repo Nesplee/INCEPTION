@@ -19,7 +19,7 @@ if [ ! -f /var/www/html/wordpress/wp-config.php ]; then
 
 	cd /var/www/html/wordpress
 	wp core install \
-		--url="${DOMAIN_NAME}" \
+		--url="https://${DOMAIN_NAME}" \
 		--title="Inception" \
 		--admin_user="${WP_ADMIN_USER}" \
 		--admin_password="${WP_ADMIN_PASSWORD}" \
