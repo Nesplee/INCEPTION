@@ -9,6 +9,7 @@
     <a href="https://42lausanne.ch"><img src="https://img.shields.io/badge/42-Lausanne-000000?style=for-the-badge&logo=42&logoColor=white" alt="42 Lausanne" /></a>
     <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
     <img src="https://img.shields.io/badge/Debian-A81D33?style=for-the-badge&logo=debian&logoColor=white" alt="Debian" />
+    <img src="https://img.shields.io/badge/grade-125%2F100-5ec8c5?style=for-the-badge" alt="Grade 125/100" />
   </p>
 
   <p>
@@ -200,7 +201,7 @@ INCEPTION/
 <h2 align="center">Result</h2>
 
 <div align="center">
-  <sup><i>Grade screenshot not available for this project.</i></sup>
+  <img src=".assets/125.png" alt="inception grade" width="220px" />
 </div>
 
 <img src=".assets/divider.png" width="100%" alt="" />
