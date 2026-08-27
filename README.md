@@ -1,222 +1,212 @@
-*This project has been created as part of the 42 curriculum by dinguyen.*
+<div align="center">
+  <img src=".assets/banner.png" width="100%" alt="inception banner" />
 
-# Inception
+  <p>
+    <b>A small production-style web stack, containerized from scratch: NGINX, WordPress, and MariaDB at the core, with five bonus services layered on top.</b>
+  </p>
 
-## Description
+  <p>
+    <a href="https://42lausanne.ch"><img src="https://img.shields.io/badge/42-Lausanne-000000?style=for-the-badge&logo=42&logoColor=white" alt="42 Lausanne" /></a>
+    <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
+    <img src="https://img.shields.io/badge/Debian-A81D33?style=for-the-badge&logo=debian&logoColor=white" alt="Debian" />
+  </p>
 
-Inception is a system administration project that consists of setting up a small infrastructure composed of different services using Docker and Docker Compose, running inside a personal virtual machine.
+  <p>
+    <img src="https://img.shields.io/badge/-Overview-2b3137?style=flat-square" alt="Overview" />
+    <img src="https://img.shields.io/badge/-Highlights-2b3137?style=flat-square" alt="Highlights" />
+    <img src="https://img.shields.io/badge/-Build%20%26%20Usage-2b3137?style=flat-square" alt="Build & Usage" />
+    <img src="https://img.shields.io/badge/-Design%20Notes-2b3137?style=flat-square" alt="Design Notes" />
+    <img src="https://img.shields.io/badge/-Infrastructure%20Layout-2b3137?style=flat-square" alt="Infrastructure Layout" />
+    <img src="https://img.shields.io/badge/-Configuration%20Reference-2b3137?style=flat-square" alt="Configuration Reference" />
+    <img src="https://img.shields.io/badge/-Result-2b3137?style=flat-square" alt="Result" />
+  </p>
+</div>
 
-Each service runs in its own dedicated container, built from a custom `Dockerfile`. No pre-built images are used (Alpine and Debian base images are the only exceptions). The entire infrastructure is orchestrated through a single `docker-compose.yml` file and launched via a `Makefile`.
+<img src=".assets/divider.png" width="100%" alt="" />
 
-The mandatory stack includes NGINX (as the sole HTTPS entry point), WordPress with PHP-FPM, and MariaDB. Five bonus services extend the infrastructure: a Redis cache, an FTP server, a static website, Adminer, and n8n as the free-choice service.
+<a name="overview"></a>
+<h2 align="center">Overview</h2>
 
----
+<div align="center">
 
-## Project Description
+`Inception` builds a small hosting stack the way it would actually be deployed: every core
+service in its own container, built from a bare `debian` base image (no pre-built DockerHub
+service images), talking to each other over a private Docker network. NGINX terminates TLS
+and is the only container exposing an HTTP(S) port for the main site; WordPress runs behind
+it as PHP-FPM, with no web server of its own; MariaDB persists everything to a bind-mounted
+volume so data survives a container restart.
 
-### Virtual Machines vs Docker
+On top of the mandatory three-service stack, this implementation adds five bonus services:
+a Redis object cache for WordPress, an Adminer database UI, an FTP server, a static website,
+and an n8n automation instance that emails a form submitter automatically.
 
-A virtual machine emulates an entire computer, including its own kernel, via a hypervisor (e.g. VirtualBox, VMware). It is heavy (several GB) and slow to start.
+**[Read the full subject](Inception.pdf)**
 
-Docker containers share the host machine's Linux kernel and isolate processes using Linux namespaces (PID, network, filesystem) and cgroups (CPU/RAM limits). They are lightweight (a few MB) and start in seconds.
+</div>
 
-In this project, the entire infrastructure runs inside a single VM, and each service runs in its own Docker container — combining both levels of isolation.
+<img src=".assets/divider.png" width="100%" alt="" />
 
-### Secrets vs Environment Variables
+<a name="highlights"></a>
+<h2 align="center">Highlights</h2>
 
-Environment variables (stored in a `.env` file) are injected at runtime into the container's environment. They are convenient but exist in plaintext in the process environment and can be inspected with `docker inspect`.
+Mandatory NGINX/WordPress/MariaDB stack, plus five bonus services.
 
-Docker secrets are files mounted into containers at `/run/secrets/` with strict access permissions. They are the recommended approach for sensitive data in production.
+- **Every core image is built from scratch off a bare Debian base.** No `nginx`, `wordpress`, or `mysql` DockerHub image is used directly; each `Dockerfile` installs and configures the service itself.
+- **NGINX terminates TLS for two virtual hosts on the same port.** `dinguyen.42.fr` serves WordPress and `n8n.dinguyen.42.fr` reverse-proxies to the n8n container, both via SNI-based `server_name` blocks on `443`, with a self-signed certificate.
+- **WordPress gets a Redis object cache, not just a database.** The `redis-cache` plugin is installed and activated automatically on first boot, and configured to point at the `redis` container, cutting down repeated database hits for cached pages.
+- **Adminer gives a database UI without exposing MariaDB itself.** It's the only bonus service that talks to `mariadb` directly; the database container itself never publishes a port to the host.
+- **A n8n workflow automates the "contact the corrector" step.** A public form triggers a workflow that sends a confirmation email via Gmail SMTP, entirely from a container running inside the stack, no external service involved.
+- **The FTP server shares the same WordPress volume.** A dedicated user can upload files directly into `/var/www/html/wordpress` over FTP, without needing shell access to the container.
+- **Data paths are configurable, not hardcoded.** `DATA_PATH` is read from `.env` at `make` time, so the same Makefile works across machines instead of assuming a fixed host path.
 
-In this project, credentials are stored in a `.env` file (never committed to git) and injected via `env_file` in `docker-compose.yml`. The `.env` file is listed in `.gitignore` and only `.env.example` (with placeholder values) is versioned.
+<img src=".assets/divider.png" width="100%" alt="" />
 
-### Docker Network vs Host Network
-
-`network: host` removes all network isolation — the container shares the host's network stack directly. It is forbidden in this project.
-
-A Docker bridge network (`driver: bridge`) creates an isolated virtual subnet. Containers on the same bridge network communicate using their service name as a hostname (internal DNS). Only NGINX exposes a port to the outside (`443:443`). All other services (MariaDB, WordPress, Redis) are only reachable from within the `inception` network.
-
-### Docker Volumes vs Bind Mounts
-
-A **bind mount** maps a specific host path directly into a container (`-v /host/path:/container/path`). It gives full control over the location but is not managed by Docker and does not appear in `docker volume ls`.
-
-A **Docker named volume** is managed by Docker and declared in the `volumes:` section of `docker-compose.yml`. It appears in `docker volume ls` and `docker volume inspect`. Named volumes are the recommended approach for persistent data.
-
-In this project, two named volumes are declared for persistent data: one for the WordPress database (`mariadb`) and one for the WordPress website files (`wordpress`). Both store their data under `/home/dinguyen/data/` on the host machine.
-
----
-
-## Architecture
-
-```
-                          Internet
-                             │
-                         HTTPS :443
-                             │
-                    ┌────────▼────────┐
-                    │      NGINX      │  ← sole entry point
-                    │   TLSv1.2/1.3   │    self-signed certificate
-                    └──────┬──────┬───┘
-                           │      │ reverse proxy
-                     :9000 │      └───────────────────────────────┐
-                    ┌──────▼────────┐                   ┌─────────▼────────┐
-                    │   WordPress   │                   │       n8n        │
-                    │   PHP-FPM     │◄──── Redis        │   automation     │
-                    └──────┬────────┘      (cache)      └──────────────────┘
-                     :3306 │
-                    ┌──────▼────────┐
-                    │    MariaDB    │
-                    └───────────────┘
-
-  Named volumes:
-    mariadb   → /home/dinguyen/data/mariadb
-    wordpress → /home/dinguyen/data/wordpress
-    n8n       → /home/dinguyen/data/n8n
-
-  Bonus services (accessible from outside):
-    :8080 → website   (static site)
-    :8081 → adminer   (database UI)
-    :21   → FTP       (access to WordPress volume)
-```
-
-All containers belong to the `inception` bridge network.
-
----
-
-## Services
-
-### Mandatory
-
-| Service     | Role                     | Technical details                                        |
-|-------------|--------------------------|----------------------------------------------------------|
-| `nginx`     | HTTPS reverse proxy      | TLSv1.2/1.3 only, port 443, self-signed certificate     |
-| `wordpress` | CMS                      | PHP-FPM on port 9000, **no built-in web server**        |
-| `mariadb`   | Database                 | 2 users: admin (not named "admin") + author role        |
-
-WordPress is configured without NGINX because the subject requires separation of concerns: NGINX handles TLS and HTTP routing, while WordPress only processes PHP via FastCGI. NGINX forwards `.php` requests using `fastcgi_pass wordpress:9000`.
-
-### Bonus
-
-| Service   | Role                                          | Access                          |
-|-----------|-----------------------------------------------|---------------------------------|
-| `redis`   | WordPress object cache (redis-cache plugin)   | Internal only                   |
-| `ftp`     | FTP access to the WordPress volume (vsftpd)   | Port 21 + 21100-21110 (passive) |
-| `adminer` | Web-based database management UI              | http://dinguyen.42.fr:8081      |
-| `website` | Static site (HTML/CSS, no PHP)                | http://dinguyen.42.fr:8080      |
-| `n8n`     | Workflow automation tool (free-choice service)| https://n8n.dinguyen.42.fr      |
-
----
-
-## Instructions
-
-### Prerequisites
-
-- Docker and Docker Compose installed on the VM
-- Add the following entries to `/etc/hosts`:
-  ```
-  127.0.0.1  dinguyen.42.fr
-  127.0.0.1  n8n.dinguyen.42.fr
-  ```
-- Create the `srcs/.env` file from the provided template:
-  ```bash
-  cp srcs/.env.example srcs/.env
-  # then edit with real values
-  ```
-
-### Environment variables (`.env`)
-
-| Variable              | Description                                         |
-|-----------------------|-----------------------------------------------------|
-| `DOMAIN_NAME`         | Domain name (e.g. `dinguyen.42.fr`)                 |
-| `MYSQL_DATABASE`      | WordPress database name                             |
-| `MYSQL_USER`          | MariaDB user for WordPress                          |
-| `MYSQL_PASSWORD`      | MariaDB user password                               |
-| `MYSQL_ROOT_PASSWORD` | MariaDB root password                               |
-| `WP_ADMIN_USER`       | WordPress admin login (must not contain "admin")    |
-| `WP_ADMIN_PASSWORD`   | WordPress admin password                            |
-| `WP_ADMIN_EMAIL`      | WordPress admin email                               |
-| `WP_USER`             | Second WordPress user (author role)                 |
-| `WP_USER_PASSWORD`    | Second user password                                |
-| `WP_USER_EMAIL`       | Second user email                                   |
-| `FTP_USER`            | FTP username                                        |
-| `FTP_PASSWORD`        | FTP password                                        |
-
-### Usage
+<a name="build--usage"></a>
+<h2 align="center">Build & Usage</h2>
 
 ```bash
-make          # Creates data directories, builds and starts all containers
-make down     # Stops containers (volumes are preserved)
-make re       # Recreates containers without losing data (forces rebuild)
-make clean    # Stops containers and removes Docker volumes
-make fclean   # Full cleanup: images, volumes, Docker cache
+cp srcs/.env.example srcs/.env   # then fill in real values
+make        # creates data directories, builds every image, starts all containers
+make down   # stops containers, data preserved
+make re     # rebuild and restart, data preserved
+make clean  # stop + remove volumes, data lost
+make fclean # full cleanup: images, volumes, cache
 ```
 
-### First-run initialization
+Add both hostnames to `/etc/hosts` first:
 
-On first startup, the init scripts handle configuration automatically:
-
-- **MariaDB**: creates the database and users from environment variables.
-- **WordPress**: waits for MariaDB to be ready (polls `mysqladmin ping`), downloads WordPress, configures `wp-config.php`, installs the CMS via WP-CLI, creates both users, installs and enables the Redis plugin.
-- **Redis**: configured as WordPress object cache (`WP_REDIS_HOST=redis`, port 6379).
-
-Initialization is **idempotent**: if `wp-config.php` already exists, the script skips installation.
-
----
-
-## Project Structure
-
+```text
+127.0.0.1  dinguyen.42.fr
+127.0.0.1  n8n.dinguyen.42.fr
 ```
-.
-├── Makefile
+
+| Service | URL |
+| --- | --- |
+| WordPress | `https://dinguyen.42.fr` |
+| n8n | `https://n8n.dinguyen.42.fr` |
+| Adminer | `http://dinguyen.42.fr:8081` |
+| Static website | `http://dinguyen.42.fr:8080` |
+| FTP | `ftp://dinguyen.42.fr` (port 21) |
+
+<img src=".assets/divider.png" width="100%" alt="" />
+
+<a name="design-notes"></a>
+<h2 align="center">Design Notes</h2>
+
+The constraints here are less about any single line of code and more about container
+boundaries: what each service is allowed to know about, and what it's isolated from.
+
+> [!NOTE]
+> **One process, one container, one responsibility.** Every service runs as a single foreground process (`nginx -g "daemon off"`, `php-fpm7.4 -F`, `n8n start`, ...); none of them daemonize internally, which is what lets Docker actually track whether the container is alive.
+
+> [!IMPORTANT]
+> **Only NGINX, the website, Adminer, and FTP publish ports.** WordPress, MariaDB, Redis, and n8n are reachable only from inside the `inception` bridge network, by container name; nothing outside the Docker host can talk to PHP-FPM, the database, the cache, or the automation engine directly.
+
+> [!TIP]
+> **Two TLS virtual hosts share one NGINX container and one certificate.** `dinguyen.42.fr` and `n8n.dinguyen.42.fr` are two separate `server` blocks in the same `nginx.conf`, distinguished by SNI, rather than two separate NGINX containers.
+
+> [!WARNING]
+> **The bonus part is only graded if the mandatory part is perfect.** All five bonus services depend on the mandatory NGINX/WordPress/MariaDB stack working correctly first; a broken mandatory part means the bonus services are never even evaluated.
+
+<img src=".assets/divider.png" width="100%" alt="" />
+
+<a name="infrastructure-layout"></a>
+<h2 align="center">Infrastructure Layout</h2>
+
+```text
+INCEPTION/
+├── Makefile                          # all / down / clean / fclean / re
+├── DEV_DOC.md                        # Setup, env variables, data storage
+├── USER_DOC.md                       # Service URLs, credentials, health checks
+├── Inception.pdf                     # Subject
 └── srcs/
-    ├── docker-compose.yml
-    ├── .env                    ← to create (ignored by git)
-    ├── .env.example            ← template provided
+    ├── docker-compose.yml            # All 8 services, volumes, and network
+    ├── .env.example                  # Template for runtime configuration
     └── requirements/
-        ├── nginx/
-        │   ├── Dockerfile
-        │   ├── conf/nginx.conf
-        │   └── tools/          ← SSL certificate generation
-        ├── wordpress/
-        │   ├── Dockerfile
-        │   ├── conf/www.conf
-        │   └── tools/init.sh   ← WP + Redis installation via WP-CLI
-        ├── mariadb/
-        │   ├── Dockerfile
-        │   ├── conf/50-server.cnf
-        │   └── tools/init.sh
+        ├── nginx/                    # TLS termination for both virtual hosts
+        ├── wordpress/                # PHP-FPM + wp-cli + Redis cache plugin
+        ├── mariadb/                  # Idempotent first-boot database setup
         └── bonus/
-            ├── redis/
-            ├── ftp/
-            ├── adminer/
-            ├── website/
-            └── n8n/
+            ├── website/              # Static NGINX site on :8080
+            ├── adminer/              # Database UI on :8081
+            ├── redis/                # WordPress object cache
+            ├── ftp/                  # vsftpd, shares the WordPress volume
+            └── n8n/                  # Automation engine + email-on-form-submit workflow
 ```
 
----
+<img src=".assets/divider.png" width="100%" alt="" />
 
-## Resources
+<a name="configuration-reference"></a>
+<h2 align="center">Configuration Reference</h2>
 
-### Documentation
+<div align="center">
 
-- [Docker official documentation](https://docs.docker.com/)
-- [Docker Compose reference](https://docs.docker.com/compose/compose-file/)
-- [NGINX documentation](https://nginx.org/en/docs/)
-- [PHP-FPM configuration](https://www.php.net/manual/en/install.fpm.configuration.php)
-- [MariaDB documentation](https://mariadb.com/kb/en/documentation/)
-- [WP-CLI documentation](https://wp-cli.org/)
-- [Redis documentation](https://redis.io/docs/)
-- [vsftpd documentation](https://security.appspot.com/vsftpd.html)
-- [n8n documentation](https://docs.n8n.io/)
+| Category | Parameters | Example |
+| --- | :---: | --- |
+| NGINX | 3 | `TLSv1.2 / TLSv1.3` |
+| WordPress | 3 | `wp-cli` |
+| MariaDB | 3 | `idempotent init` |
+| Volumes & network | 3 | `bridge` |
+| Bonus services | 5 | `n8n` |
 
-### Video tutorials
+</div>
 
-- [cocadmin — Docker pour les débutants (YouTube)](https://www.youtube.com/@cocadmin) — used to understand Docker fundamentals, container networking, and docker-compose structure. Particularly helpful for understanding PID 1 behavior and the difference between images and containers.
+<table width="100%">
+<tr><th width="26%">Parameter</th><th>Value<img src=".assets/spacer.png" width="900" height="1" alt="" /></th></tr>
+<tr><td colspan="2" align="right"><img src=".assets/badges/nginx.png" height="22" alt="NGINX (TLS)" /></td></tr>
+<tr><td align="center"><code>Virtual hosts</code></td><td><code>dinguyen.42.fr</code> (WordPress) and <code>n8n.dinguyen.42.fr</code> (n8n), same port, SNI-based</td></tr>
+<tr><td align="center"><code>TLS</code></td><td>Self-signed certificate, restricted to <code>TLSv1.2</code> / <code>TLSv1.3</code></td></tr>
+<tr><td align="center"><code>PHP routing</code></td><td>Proxies <code>.php</code> requests to <code>wordpress:9000</code> over FastCGI</td></tr>
 
-### AI usage
+<tr><td colspan="2" align="right"><img src=".assets/badges/wordpress.png" height="22" alt="WordPress + PHP-FPM" /></td></tr>
+<tr><td align="center"><code>Web server</code></td><td>None; serves PHP-FPM only, NGINX handles all HTTP</td></tr>
+<tr><td align="center"><code>Setup</code></td><td><code>wp-cli</code> downloads core, writes config, and installs the site</td></tr>
+<tr><td align="center"><code>Object cache</code></td><td><code>redis-cache</code> plugin, installed and enabled on first boot</td></tr>
 
-AI tools were used in the following ways during this project:
+<tr><td colspan="2" align="right"><img src=".assets/badges/mariadb.png" height="22" alt="MariaDB" /></td></tr>
+<tr><td align="center"><code>Access</code></td><td>Reachable only from inside the Docker network, no published port</td></tr>
+<tr><td align="center"><code>First boot</code></td><td>Creates the database and application user from <code>.env</code> values</td></tr>
+<tr><td align="center"><code>Persistence</code></td><td>Bind-mounted volume under <code>$DATA_PATH/mariadb</code></td></tr>
 
-- Finding relevant learning resources and getting familiar with essential Docker commands during the early stages.
-- Generating the `USER_DOC.md` and `DEV_DOC.md` documentation files, which were then reviewed and corrected to match the actual project configuration.
-- Generating the initial structure of the static website (`srcs/requirements/bonus/website/tools/index.html`), which was then adjusted and validated manually.
+<tr><td colspan="2" align="right"><img src=".assets/badges/volumes.png" height="22" alt="Volumes & Network" /></td></tr>
+<tr><td align="center"><code>mariadb / wordpress / n8n volumes</code></td><td>Bind-mounted under a configurable <code>$DATA_PATH</code>, survive container recreation</td></tr>
+<tr><td align="center"><code>wordpress volume</code></td><td>Shared between the WordPress, NGINX, and FTP containers</td></tr>
+<tr><td align="center"><code>Network</code></td><td>Single bridge network (<code>inception</code>) connecting all 8 services</td></tr>
+
+<tr><td colspan="2" align="right"><img src=".assets/badges/bonus.png" height="22" alt="Bonus Services" /></td></tr>
+<tr><td align="center"><code>website</code></td><td>Static NGINX site, published on <code>:8080</code></td></tr>
+<tr><td align="center"><code>adminer</code></td><td>Database UI, published on <code>:8081</code>, talks to <code>mariadb</code></td></tr>
+<tr><td align="center"><code>redis</code></td><td>Object cache for WordPress, internal only</td></tr>
+<tr><td align="center"><code>ftp</code></td><td><code>vsftpd</code>, published on <code>:21</code>, shares the WordPress volume</td></tr>
+<tr><td align="center"><code>n8n</code></td><td>Automation engine behind NGINX; a public form workflow emails submitters via Gmail SMTP</td></tr>
+</table>
+
+<img src=".assets/divider.png" width="100%" alt="" />
+
+<a name="skills-developed"></a>
+<h2 align="center">Skills Developed</h2>
+
+<table width="100%">
+<tr><th>Learning Outcome<img src=".assets/spacer.png" width="900" height="1" alt="" /></th><th width="28%">Piscine Skill Area</th></tr>
+<tr><td>Building custom Docker images from a bare base, no pre-built service images</td><td align="center">Network & System Administration</td></tr>
+<tr><td>Multi-host TLS termination with SNI on a single reverse proxy</td><td align="center">Security</td></tr>
+<tr><td>Extending a core stack with independent, loosely-coupled bonus services</td><td align="center">Network & System Administration</td></tr>
+<tr><td>Automating a workflow (form submission to email) with a self-hosted tool</td><td align="center">Rigor</td></tr>
+</table>
+
+<img src=".assets/divider.png" width="100%" alt="" />
+
+<a name="result"></a>
+<h2 align="center">Result</h2>
+
+<div align="center">
+  <sup><i>Grade screenshot not available for this project.</i></sup>
+</div>
+
+<img src=".assets/divider.png" width="100%" alt="" />
+
+<div align="center">
+
+<sub>42 Lausanne · Common Core</sub>
+
+</div>
