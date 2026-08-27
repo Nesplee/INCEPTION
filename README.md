@@ -202,6 +202,8 @@ INCEPTION/
 
 <div align="center">
   <img src=".assets/125.png" alt="inception grade" width="220px" />
+  <br/>
+  <sup><i>Validated on July 9, 2026</i></sup>
 </div>
 
 <img src=".assets/divider.png" width="100%" alt="" />
