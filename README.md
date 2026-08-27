@@ -42,7 +42,7 @@ A **bind mount** maps a specific host path directly into a container (`-v /host/
 
 A **Docker named volume** is managed by Docker and declared in the `volumes:` section of `docker-compose.yml`. It appears in `docker volume ls` and `docker volume inspect`. Named volumes are the recommended approach for persistent data.
 
-In this project, two named volumes are declared for persistent data: one for the WordPress database (`mariadb`) and one for the WordPress website files (`wordpress`). Both store their data under `/home/dimitri/data/` on the host machine.
+In this project, two named volumes are declared for persistent data: one for the WordPress database (`mariadb`) and one for the WordPress website files (`wordpress`). Both store their data under `/home/dinguyen/data/` on the host machine.
 
 ---
 
@@ -69,9 +69,9 @@ In this project, two named volumes are declared for persistent data: one for the
                     └───────────────┘
 
   Named volumes:
-    mariadb   → /home/dimitri/data/mariadb
-    wordpress → /home/dimitri/data/wordpress
-    n8n       → /home/dimitri/data/n8n
+    mariadb   → /home/dinguyen/data/mariadb
+    wordpress → /home/dinguyen/data/wordpress
+    n8n       → /home/dinguyen/data/n8n
 
   Bonus services (accessible from outside):
     :8080 → website   (static site)

@@ -49,13 +49,13 @@ The `make` command creates the data directories, builds all images, and starts a
 
 ## Data storage
 
-Named volumes are stored on the host under `/home/dimitri/data/`:
+Named volumes are stored on the host under `/home/dinguyen/data/`:
 
 | Volume      | Host path                     | Used by   |
 |-------------|-------------------------------|-----------|
-| `mariadb`   | `/home/dimitri/data/mariadb`  | MariaDB   |
-| `wordpress` | `/home/dimitri/data/wordpress`| WordPress |
-| `n8n`       | `/home/dimitri/data/n8n`      | n8n       |
+| `mariadb`   | `/home/dinguyen/data/mariadb`  | MariaDB   |
+| `wordpress` | `/home/dinguyen/data/wordpress`| WordPress |
+| `n8n`       | `/home/dinguyen/data/n8n`      | n8n       |
 
 Data survives `make down` and `make re`. It is deleted by `make clean` and `make fclean`.
 

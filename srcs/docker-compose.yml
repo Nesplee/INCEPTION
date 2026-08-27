@@ -105,19 +105,19 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: /home/dinguyen/data/mariadb
+      device: ${DATA_PATH}/mariadb
   wordpress:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: /home/dinguyen/data/wordpress
+      device: ${DATA_PATH}/wordpress
   n8n:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: /home/dinguyen/data/n8n
+      device: ${DATA_PATH}/n8n
 
 networks:
   inception:

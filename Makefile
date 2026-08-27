@@ -1,5 +1,7 @@
+DATA_PATH := $(shell grep '^DATA_PATH=' srcs/.env | cut -d= -f2)
+
 all:
-	mkdir -p /home/dinguyen/data/mariadb /home/dinguyen/data/wordpress /home/dinguyen/data/n8n
+	mkdir -p $(DATA_PATH)/mariadb $(DATA_PATH)/wordpress $(DATA_PATH)/n8n
 	docker compose -f srcs/docker-compose.yml up -d --build
 
 down:
